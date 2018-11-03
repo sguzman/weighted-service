@@ -1,19 +1,18 @@
-FROM alpine:latest AS base
+FROM liuchong/rustup:musl AS base
 RUN mkdir app
 WORKDIR ./app
 
-RUN apk add --no-cache libgcc openssl-dev rust cargo
-
 COPY ./Cargo.lock ./Cargo.lock
 COPY ./Cargo.toml ./Cargo.toml
-RUN cargo build --release --jobs 2 --verbose
 
+RUN rustup target add x86_64-unknown-linux-musl
+RUN rustup install nightly
 ADD src src
-RUN cargo build --package weighted-consumer --bin weighted-consumer --verbose --jobs 2 --all-features --release .
-RUN mv ./target/release/weighted-consumer /root
 
-FROM alpine
-COPY --from=base /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY --from=base /app/target/release/weighted-consumer /main
+ARG name=weighted-consumer
+RUN cargo build --package $name --bin $name --verbose --jobs 2 --all-features --release --target=x86_64-unknown-linux-musl
+
+FROM scratch
+COPY --from=base /root/app/target/x86_64-unknown-linux-musl/release/weighted-consumer /main
 
 ENTRYPOINT ["/main"]
