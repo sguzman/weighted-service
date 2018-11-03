@@ -2,10 +2,9 @@
 name = "weighted-consumer"
 version = "0.1.0"
 authors = ["Salvador Guzman <guzmansalv@gmail.com>"]
-edition = "2018"
 
 [[bin]]
 name = "weighted-consumer"
-path = "./src/main.rs"
+path = "src/main.rs"
 
 [dependencies]
