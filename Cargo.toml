@@ -8,3 +8,4 @@ name = "weighted-consumer"
 path = "src/main.rs"
 
 [dependencies]
+actix-web = "0.7.13"
