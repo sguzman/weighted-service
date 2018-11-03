@@ -2,13 +2,13 @@ FROM alpine:latest AS base
 RUN mkdir app
 WORKDIR ./app
 
+RUN apk add --no-cache libgcc openssl-dev rust cargo
+
 COPY ./Cargo.lock ./Cargo.lock
 COPY ./Cargo.toml ./Cargo.toml
-
-RUN apk add --no-cache libgcc openssl-dev rust cargo
 RUN cargo build --release --jobs 2 --verbose
 
-ADD . src
+ADD src src
 RUN cargo build --package weighted-consumer --bin weighted-consumer --verbose --jobs 2 --all-features --release .
 RUN mv ./target/release/weighted-consumer /root
 
