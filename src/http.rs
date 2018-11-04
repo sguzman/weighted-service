@@ -34,7 +34,7 @@ pub fn server_init() {
         let f = move |_: actix_web::Path<()>| {
             let serial = receiver.recv().unwrap();
 
-            println!("Hello");
+            println!("{}", serial);
             return format!("<h1>{}</h1>\n", serial);
         };
 
