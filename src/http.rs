@@ -1,16 +1,17 @@
+extern crate rand;
+
 use util;
+use postgres;
 
-fn f(_: actix_web::Path<()>) -> impl actix_web::Responder {
-    println!("Hello");
-    return format!("<h1>Hello</h1>\n");
-}
+fn get_random(items: &mut Vec<rand::distributions::Weighted<String>>) -> String {
+    use http::rand::distributions::IndependentSample;
+    use http::rand::distributions::Distribution;
 
-fn factory() -> actix_web::App {
-    let path: &str = "/";
-    let method: actix_web::http::Method = actix_web::http::Method::GET;
+    let wc: rand::distributions::WeightedChoice<String> = rand::distributions::WeightedChoice::new(&mut items);
+    let mut rng = rand::thread_rng();
+    let serial: String = wc.ind_sample(&mut rng);
 
-    return actix_web::App::new()
-        .route(path, method, f);
+    return serial;
 }
 
 pub fn server_init() {
@@ -18,6 +19,30 @@ pub fn server_init() {
     let port: String = util::env("PORT", "8080");
     let addr: String = format!("{}:{}", host, port);
 
+    let (sender, receiver) = std::sync::mpsc::sync_channel(0);
+    std::thread::spawn(move|| {
+        let mut items: Vec<rand::distributions::Weighted<String>> = postgres::channels();
+        loop {
+            sender.send(get_random(&mut items)).unwrap();
+        }
+    });
+
+    let factory = move || {
+        let path: &str = "/";
+        let method: actix_web::http::Method = actix_web::http::Method::GET;
+
+        let f = |_: actix_web::Path<()>| {
+            let serial = receiver.recv().unwrap();
+
+            println!("Hello");
+            return format!("<h1>{}</h1>\n", serial);
+        };
+
+        return actix_web::App::new()
+            .route(path, method, f);
+    };
+
+    println!("{}", "start");
     actix_web::server::new(factory)
         .bind(addr).unwrap()
         .run();
