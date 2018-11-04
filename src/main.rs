@@ -16,7 +16,7 @@ fn factory() -> actix_web::App {
 fn env(key: &str, default: &str) -> String {
     return match std::env::var(key) {
         Ok(lang) => lang,
-        Err(e) => format!("{}", default)
+        Err(_) => format!("{}", default)
     };
 }
 
