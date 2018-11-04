@@ -1,4 +1,5 @@
 extern crate postgres;
+extern crate rand;
 
 use util;
 
@@ -10,19 +11,29 @@ fn conn_str() -> String {
 }
 
 fn conn() -> postgres::Connection {
-    let ssl = postgres::TlsMode::None;
-    let conn_string: String = conn_str();
+    let tls = postgres::TlsMode::None;
+    let params: String = conn_str();
 
-    return postgres::Connection::connect(conn_string, ssl).unwrap();
+    return postgres::Connection::connect(params, tls).unwrap();
 }
 
-pub fn query() {
+pub fn channels() -> Vec<rand::distributions::Weighted<String>> {
     let c: postgres::Connection = conn();
-    let query: &str = "SELECT serial, subs FROM youtube.entities.chan_stats ORDER BY RANDOM() LIMIT 10";
+    let query: &str = "select serial, subs from youtube.entities.chan_stats where (serial, time) in (select serial, max(time) from youtube.entities.chan_stats group by serial)";
 
+    let mut vec = Vec::new();
     for row in &c.query(query, &[]).unwrap() {
-        let id: String = row.get(0);
-        let name: i64 = row.get(1);
-        println!("{} -> {}", id, name);
+        let serial: String = row.get(0);
+        let subs: u32 = row.get(1);
+        let weight = rand::distributions::Weighted {
+            weight: subs,
+            item: serial
+        };
+
+        vec.push(weight);
+
+        println!("{} -> {}", serial, subs);
     }
+
+    return vec;
 }
