@@ -1,11 +1,11 @@
 extern crate actix_web;
 
 mod http;
+mod postgres;
 mod util;
-
 
 fn main() {
     println!("start");
-
-    http::server_init();
+    postgres::query();
+    //http::server_init();
 }
