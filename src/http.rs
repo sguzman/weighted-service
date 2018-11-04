@@ -26,16 +26,21 @@ pub fn server_init() {
         let (sender, receiver) = std::sync::mpsc::sync_channel(0);
         std::thread::spawn(move|| {
             let mut items: Vec<rand::distributions::Weighted<String>> = postgres::channels();
+            let mut set = std::collections::HashSet::new();
             loop {
-                sender.send(get_random(&mut items)).unwrap();
+                while set.len() < 50 {
+                    set.insert(get_random(&mut items));
+                }
+                sender.send(set.clone()).unwrap();
+                set.clear();
             }
         });
 
         let f = move |_: actix_web::Path<()>| {
-            let serial = receiver.recv().unwrap();
+            let serials = receiver.recv().unwrap();
 
-            println!("{}", serial);
-            return format!("<h1>{}</h1>\n", serial);
+            println!("{:?}",serials);
+            return format!("<h1>{:?}</h1>\n", serials);
         };
 
         return actix_web::App::new()
