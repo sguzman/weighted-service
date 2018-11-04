@@ -19,20 +19,18 @@ fn conn() -> postgres::Connection {
 
 pub fn channels() -> Vec<rand::distributions::Weighted<String>> {
     let c: postgres::Connection = conn();
-    let query: &str = "select serial, subs from youtube.entities.chan_stats where (serial, time) in (select serial, max(time) from youtube.entities.chan_stats group by serial)";
+    let query: &str = "select serial, subs from youtube.entities.chan_stats where (serial, time) in (select serial, max(time) from youtube.entities.chan_stats group by serial) LIMIT 10";
 
     let mut vec = Vec::new();
     for row in &c.query(query, &[]).unwrap() {
         let serial: String = row.get(0);
-        let subs: u32 = row.get(1);
+        let subs: i64 = row.get(1);
         let weight = rand::distributions::Weighted {
-            weight: subs,
+            weight: subs as u32,
             item: serial
         };
 
         vec.push(weight);
-
-        println!("{} -> {}", serial, subs);
     }
 
     return vec;
