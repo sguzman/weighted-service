@@ -7,7 +7,7 @@ COPY ./Cargo.toml ./Cargo.toml
 
 RUN rustup target add x86_64-unknown-linux-musl
 RUN rustup install nightly
-RUN cargo install cargo-build-deps
+RUN cargo install cargo-build-deps --verbose --color always
 RUN cargo build-deps --release
 
 ADD src src
