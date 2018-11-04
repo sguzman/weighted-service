@@ -7,7 +7,7 @@ fn get_random(items: &mut Vec<rand::distributions::Weighted<String>>) -> String 
     use http::rand::distributions::IndependentSample;
     use http::rand::distributions::Distribution;
 
-    let wc: rand::distributions::WeightedChoice<String> = rand::distributions::WeightedChoice::new(&mut items);
+    let wc: rand::distributions::WeightedChoice<String> = rand::distributions::WeightedChoice::new(items);
     let mut rng = rand::thread_rng();
     let serial: String = wc.ind_sample(&mut rng);
 
@@ -19,19 +19,19 @@ pub fn server_init() {
     let port: String = util::env("PORT", "8080");
     let addr: String = format!("{}:{}", host, port);
 
-    let (sender, receiver) = std::sync::mpsc::sync_channel(0);
-    std::thread::spawn(move|| {
-        let mut items: Vec<rand::distributions::Weighted<String>> = postgres::channels();
-        loop {
-            sender.send(get_random(&mut items)).unwrap();
-        }
-    });
-
     let factory = move || {
         let path: &str = "/";
         let method: actix_web::http::Method = actix_web::http::Method::GET;
 
-        let f = |_: actix_web::Path<()>| {
+        let (sender, receiver) = std::sync::mpsc::sync_channel(0);
+        std::thread::spawn(move|| {
+            let mut items: Vec<rand::distributions::Weighted<String>> = postgres::channels();
+            loop {
+                sender.send(get_random(&mut items)).unwrap();
+            }
+        });
+
+        let f = move |_: actix_web::Path<()>| {
             let serial = receiver.recv().unwrap();
 
             println!("Hello");
