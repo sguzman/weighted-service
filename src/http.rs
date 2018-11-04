@@ -1,3 +1,5 @@
+use util;
+
 fn f(_: actix_web::Path<()>) -> impl actix_web::Responder {
     println!("Hello");
     return format!("<h1>Hello</h1>\n");
