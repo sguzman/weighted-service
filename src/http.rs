@@ -14,8 +14,8 @@ fn factory() -> actix_web::App {
 }
 
 pub fn server_init() {
-    let host: String = env("HOST", "0.0.0.0");
-    let port: String = env("PORT", "8080");
+    let host: String = util::env("HOST", "0.0.0.0");
+    let port: String = util::env("PORT", "8080");
     let addr: String = format!("{}:{}", host, port);
 
     actix_web::server::new(factory)
