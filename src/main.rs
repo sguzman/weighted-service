@@ -5,7 +5,5 @@ mod postgres;
 mod util;
 
 fn main() {
-    println!("start");
-    postgres::query();
-    //http::server_init();
+    http::server_init();
 }
